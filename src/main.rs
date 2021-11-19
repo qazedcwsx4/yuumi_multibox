@@ -6,11 +6,13 @@ use std::thread::sleep;
 use std::time::Duration;
 
 use inputbot::{*, KeybdKey::*, MouseButton::*};
+use crate::communication::create_connection;
 
 use crate::log::Level::*;
 use crate::log::log;
 
 mod log;
+mod communication;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -28,8 +30,10 @@ fn main() {
 
 fn adc_mode() {
     log(INFO, "running in adc mode");
+    let connection = create_connection();
 }
 
 fn yuumi_mode() {
     log(INFO, "running in yuumi mode");
+    let connection = create_connection();
 }
