@@ -22,18 +22,18 @@ fn main() {
         Some("adc") => adc_mode(),
         Some("yuumi") => yuumi_mode(),
         _ => {
-            log(PANIC, "Invalid mode, pass \"yuumi\" or \"adc\" as the first parameter");
+            log(Panic, "Invalid mode, pass \"yuumi\" or \"adc\" as the first parameter");
             panic!()
         }
     }
 }
 
 fn adc_mode() {
-    log(INFO, "running in adc mode");
-    let connection = create_connection();
+    log(Info, "running in adc mode");
+    let mut connection = create_connection();
 }
 
 fn yuumi_mode() {
-    log(INFO, "running in yuumi mode");
+    log(Info, "running in yuumi mode");
     let connection = create_connection();
 }

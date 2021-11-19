@@ -2,26 +2,26 @@ use crate::log::Level::*;
 
 #[derive(Ordinalize)]
 pub enum Level {
-    TRACE,
-    INFO,
-    WARN,
-    ERROR,
-    PANIC,
+    Trace,
+    Info,
+    Warn,
+    Error,
+    Panic,
 }
 
 impl Level {
     fn name(&self) -> &str {
         match self {
-            TRACE => "TRACE",
-            INFO => "INFO",
-            WARN => "WARN",
-            ERROR => "ERROR",
-            PANIC => "PANIC",
+            Trace => "TRACE",
+            Info => "INFO",
+            Warn => "WARN",
+            Error => "ERROR",
+            Panic => "PANIC",
         }
     }
 }
 
-static LOG_LEVEL: Level = TRACE;
+static LOG_LEVEL: Level = Trace;
 
 pub fn log(level: Level, message: &str) {
     if level.ordinal() >= LOG_LEVEL.ordinal() {
