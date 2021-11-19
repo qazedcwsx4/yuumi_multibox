@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 inputbot = "0.5.1"
 enum-ordinalize = "3.1.10"
+bytes = "1.1.0"

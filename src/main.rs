@@ -1,12 +1,15 @@
 #[macro_use]
 extern crate enum_ordinalize;
 
+use std::borrow::BorrowMut;
 use std::env;
 use std::thread::sleep;
 use std::time::Duration;
+use bytes::Buf;
 
 use inputbot::{*, KeybdKey::*, MouseButton::*};
-use crate::communication::create_connection;
+use crate::communication::{create_connection, Message, receive_message, send_message};
+use crate::communication::Message::SkillQ;
 
 use crate::log::Level::*;
 use crate::log::log;
@@ -31,9 +34,11 @@ fn main() {
 fn adc_mode() {
     log(Info, "running in adc mode");
     let mut connection = create_connection();
+    send_message(connection.borrow_mut(), SkillQ)
 }
 
 fn yuumi_mode() {
     log(Info, "running in yuumi mode");
-    let connection = create_connection();
+    let mut connection = create_connection();
+    println!("{:?}", receive_message(connection.borrow_mut()))
 }
