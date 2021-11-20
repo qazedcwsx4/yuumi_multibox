@@ -1,5 +1,6 @@
 use crate::log::Level::*;
 
+#[allow(dead_code)]
 #[derive(Ordinalize)]
 pub enum Level {
     Trace,

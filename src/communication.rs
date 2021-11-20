@@ -1,38 +1,13 @@
-use std::borrow::{Borrow, BorrowMut};
-use std::fmt::Error;
+use std::borrow::Borrow;
+use std::error::Error;
 use std::io;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 
-use bytes::{Buf, BufMut, Bytes, BytesMut};
-
+use crate::features::message;
+use crate::features::message::Message;
 use crate::log::Level::{Info, Panic};
 use crate::log::log;
-
-#[derive(Ordinalize)]
-#[derive(Debug)]
-pub enum Message {
-    SkillQ = 0,
-    SkillW = 1,
-    SkillE = 2,
-    SkillR = 3,
-    MoveMouse = 4,
-    Summoner1 = 5,
-    Summoner2 = 6,
-}
-
-impl Message {
-    pub fn encode(&self) -> BytesMut {
-        let mut bytes = BytesMut::new();
-        bytes.put_i8(self.ordinal());
-        bytes
-    }
-
-    pub fn decode(bytes: &mut Bytes) -> Message {
-        let ordinal = bytes.get_i8();
-        Message::from_ordinal(ordinal).expect("cannot parse message")
-    }
-}
 
 pub fn create_connection() -> TcpStream {
     return match try_create_connection() {
@@ -47,24 +22,33 @@ pub fn create_connection() -> TcpStream {
     };
 }
 
-pub fn send_message(connection: &mut TcpStream, message: Message) {
-    if connection.write(message.encode().as_ref()).is_err() {
+pub fn send_message(connection: &mut TcpStream, message: message::Message) {
+    let encoded: Vec<u8> = bincode::serialize(&message).unwrap();
+    if connection.write(encoded.as_slice()).is_err() {
         log(Panic, "unable to send data");
         panic!();
     }
 }
 
 pub fn receive_message(connection: &mut TcpStream) -> Message {
-    let mut buffer = [0_u8; 10];
-    match connection.read(&mut buffer) {
-        Ok(size) => {
-            let mut bytes = Bytes::copy_from_slice(buffer[0..size].borrow());
-            Message::decode(bytes.borrow_mut())
-        }
-        Err(_) => {
-            log(Panic, "unable to receive data");
+    match try_receive_message(connection) {
+        Ok(message) => message,
+        Err(err) => {
+            log(Panic, "unable to receive message");
+            dbg!(err);
             panic!();
         }
+    }
+}
+
+pub fn try_receive_message(connection: &mut TcpStream) -> Result<Message, Box<dyn Error>> {
+    let mut buffer = [0_u8; 64];
+
+    connection.read(&mut buffer)?;
+
+    match bincode::deserialize(buffer.borrow()) {
+        Ok(message) => Ok(message),
+        Err(xd) => Err(Box::new(xd))
     }
 }
 
