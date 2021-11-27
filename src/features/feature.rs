@@ -12,11 +12,11 @@ pub trait SkillStruct {
 }
 
 pub trait Feature {
-    type ConcreteMessage: SkillStruct;
+    type ConcreteSkill: SkillStruct;
 
-    fn out() -> Self::ConcreteMessage;
+    fn out() -> Self::ConcreteSkill;
 
-    fn enact(message: Self::ConcreteMessage);
+    fn enact(message: Self::ConcreteSkill);
 
     fn key() -> KeybdKey;
 

@@ -1,9 +1,9 @@
 use inputbot::KeybdKey;
-use inputbot::KeybdKey::{EKey, Numpad1Key};
+use inputbot::KeybdKey::{EKey, Numpad3Key};
 use serde::{Deserialize, Serialize};
 
 use crate::features::feature::{Feature, SkillStruct};
-use crate::features::message::{Message};
+use crate::features::message::Message;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SkillE {}
@@ -17,17 +17,17 @@ impl SkillStruct for SkillE {
 pub struct SkillEFeature;
 
 impl Feature for SkillEFeature {
-    type ConcreteMessage = SkillE;
+    type ConcreteSkill = SkillE;
 
-    fn out() -> Self::ConcreteMessage {
+    fn out() -> Self::ConcreteSkill {
         SkillE {}
     }
 
-    fn enact(_: Self::ConcreteMessage) {
+    fn enact(_: Self::ConcreteSkill) {
         EKey.press();
     }
 
     fn key() -> KeybdKey {
-        Numpad1Key
+        Numpad3Key
     }
 }

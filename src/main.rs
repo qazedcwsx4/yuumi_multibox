@@ -10,7 +10,9 @@ use inputbot::handle_input_events;
 use crate::communication::{create_connection, receive_message, send_message};
 use crate::features::feature::Feature;
 use crate::features::message::Message;
-use crate::features::skill_e::{SkillE, SkillEFeature};
+use crate::features::skill_e::SkillEFeature;
+use crate::features::skill_q::SkillQFeature;
+use crate::features::skill_w::SkillWFeature;
 use crate::log::Level::*;
 use crate::log::log;
 
@@ -45,12 +47,11 @@ fn yuumi_mode() {
     log(Info, "running in yuumi mode");
     let mut connection = create_connection();
 
-    send_message(&mut connection, Message::SkillE(SkillE {}));
-
     loop {
         let message = receive_message(connection.borrow_mut());
         match message {
-            Message::SkillE(it) => SkillEFeature::enact(it)
+            Message::SkillW(it) => SkillWFeature::enact(it),
+            Message::SkillE(it) => SkillEFeature::enact(it),
         }
     }
 }
