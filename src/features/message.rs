@@ -6,6 +6,7 @@ use crate::features::skill_w::SkillW;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Message {
+    SkillQ(SkillQ),
     SkillW(SkillW),
     SkillE(SkillE),
 }

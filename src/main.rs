@@ -50,6 +50,7 @@ fn yuumi_mode() {
     loop {
         let message = receive_message(connection.borrow_mut());
         match message {
+            Message::SkillQ(it) => SkillQFeature::enact(it),
             Message::SkillW(it) => SkillWFeature::enact(it),
             Message::SkillE(it) => SkillEFeature::enact(it),
         }
