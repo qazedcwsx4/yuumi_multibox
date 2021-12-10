@@ -3,10 +3,11 @@ extern crate enum_ordinalize;
 
 use std::borrow::BorrowMut;
 use std::env;
-use std::net::{IpAddr};
+use std::net::{AddrParseError, IpAddr, Ipv4Addr};
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 
+use clap::{App, AppSettings, Arg, SubCommand};
 use inputbot::handle_input_events;
 
 use crate::communication::{create_connection, receive_message};
@@ -22,23 +23,51 @@ mod log;
 mod communication;
 mod features;
 
-fn main() {
-    let args: Vec<String> = env::args().collect();
-    let mode = args.get(1).map(|it| it.as_str());
+const IP_VALIDATOR: fn(String) -> Result<(), String> = |argument: String| {
+    match IpAddr::from_str(&argument) {
+        Ok(_) => Ok(()),
+        Err(error) => { Err(error.to_string()) }
+    }
+};
 
-    let address = parse_address(args.get(2));
+const DESTINATION_PARAM: &str = "destination";
+const LISTEN_PARAM: &str = "listen";
+
+fn main() {
+    let matches = App::new("Yuumi Multibox")
+        .setting(AppSettings::SubcommandRequiredElseHelp)
+        .arg(Arg::with_name(DESTINATION_PARAM)
+            .long("destination")
+            .short("d")
+            .value_name("IP")
+            .help("if set, the application will attempt connection to this address")
+            .validator(IP_VALIDATOR))
+        .arg(Arg::with_name(LISTEN_PARAM)
+            .long("listen")
+            .short("l")
+            .value_name("IP")
+            .help("if set, the application will use this IP to listen to incoming connections instead of default local IP")
+            .validator(IP_VALIDATOR))
+        .subcommand(SubCommand::with_name("adc")
+            .about("Run as the ADC host"))
+            .display_order(0)
+        .subcommand(SubCommand::with_name("yuumi")
+            .about("Run as the yuumi client")
+            .display_order(0))
+        .get_matches();
+
+    let mode = matches.subcommand().0;
+    let destination = parse_address(matches.value_of(DESTINATION_PARAM));
+    let listen = parse_address(matches.value_of(LISTEN_PARAM));
 
     match mode {
-        Some("adc") => adc_mode(address),
-        Some("yuumi") => yuumi_mode(address),
-        _ => {
-            log(Panic, "Invalid mode, pass \"yuumi\" or \"adc\" as the first parameter");
-            panic!()
-        }
+        "adc" => adc_mode(destination, listen),
+        "yuumi" => yuumi_mode(destination, listen),
+        _ => panic!()
     }
 }
 
-fn parse_address(address: Option<&String>) -> Option<IpAddr> {
+fn parse_address(address: Option<&str>) -> Option<IpAddr> {
     match address {
         None => {
             log(Warn, "No destination ip passed, outbound connection will not be attempted");
@@ -53,18 +82,18 @@ fn parse_address(address: Option<&String>) -> Option<IpAddr> {
     }
 }
 
-fn adc_mode(address: Option<IpAddr>) {
+fn adc_mode(destination: Option<IpAddr>, listen: Option<IpAddr>) {
     log(Info, "running in adc mode");
-    let original_connection = Arc::new(Mutex::new(create_connection(address)));
+    let original_connection = Arc::new(Mutex::new(create_connection(destination, listen)));
 
     SkillEFeature::register(&original_connection);
 
     handle_input_events()
 }
 
-fn yuumi_mode(address: Option<IpAddr>) {
+fn yuumi_mode(destination: Option<IpAddr>, listen: Option<IpAddr>) {
     log(Info, "running in yuumi mode");
-    let mut connection = create_connection(address);
+    let mut connection = create_connection(destination, listen);
 
     loop {
         let message = receive_message(connection.borrow_mut());

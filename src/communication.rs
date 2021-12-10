@@ -12,8 +12,8 @@ use crate::log::log;
 
 const PORT: u16 = 34254;
 
-pub fn create_connection(address: Option<IpAddr>) -> TcpStream {
-    return match try_create_connection(address) {
+pub fn create_connection(destination: Option<IpAddr>, listen: Option<IpAddr>) -> TcpStream {
+    return match try_create_connection(destination, listen) {
         Ok(stream) => {
             log(Info, "connected");
             stream
@@ -55,27 +55,27 @@ pub fn try_receive_message(connection: &mut TcpStream) -> Result<Message, Box<dy
     }
 }
 
-fn try_create_connection(address: Option<IpAddr>) -> io::Result<TcpStream> {
-    if address.is_none() {
-        return wait_for_connection()
+fn try_create_connection(destination: Option<IpAddr>, listen: Option<IpAddr>) -> io::Result<TcpStream> {
+    if destination.is_none() {
+        return wait_for_connection(listen)
     }
 
-    let stream = TcpStream::connect(SocketAddr::new(address.unwrap(), PORT));
+    let stream = TcpStream::connect(SocketAddr::new(destination.unwrap(), PORT));
 
     return match stream {
         Ok(_) => stream,
         Err(_) => {
             log(Info, "attempting connection failed, starting listener");
-            wait_for_connection()
+            wait_for_connection(listen)
         }
     };
 }
 
-fn wait_for_connection() -> io::Result<TcpStream> {
-    let address = local_ip();
+fn wait_for_connection(address: Option<IpAddr>) -> io::Result<TcpStream> {
+    let address = address.unwrap_or_else(|| local_ip().unwrap());
     log(Info, "starting listening on");
-    log(Info, local_ip().unwrap().to_string().as_str());
+    log(Info, &address.to_string());
 
-    let listener = TcpListener::bind(SocketAddr::new(address.unwrap(), PORT))?;
+    let listener = TcpListener::bind(SocketAddr::new(address, PORT))?;
     listener.accept().map(|it| it.0)
 }
