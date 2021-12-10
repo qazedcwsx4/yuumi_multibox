@@ -2,15 +2,18 @@ use std::borrow::Borrow;
 use std::error::Error;
 use std::io;
 use std::io::{Read, Write};
-use std::net::{TcpListener, TcpStream};
+use std::net::{IpAddr, SocketAddr, TcpListener, TcpStream};
+use local_ip_address::local_ip;
 
 use crate::features::message;
 use crate::features::message::Message;
 use crate::log::Level::{Info, Panic};
 use crate::log::log;
 
-pub fn create_connection() -> TcpStream {
-    return match try_create_connection() {
+const PORT: u16 = 34254;
+
+pub fn create_connection(address: Option<IpAddr>) -> TcpStream {
+    return match try_create_connection(address) {
         Ok(stream) => {
             log(Info, "connected");
             stream
@@ -52,15 +55,27 @@ pub fn try_receive_message(connection: &mut TcpStream) -> Result<Message, Box<dy
     }
 }
 
-fn try_create_connection() -> io::Result<TcpStream> {
-    let stream = TcpStream::connect("127.0.0.1:34254");
+fn try_create_connection(address: Option<IpAddr>) -> io::Result<TcpStream> {
+    if address.is_none() {
+        return wait_for_connection()
+    }
+
+    let stream = TcpStream::connect(SocketAddr::new(address.unwrap(), PORT));
 
     return match stream {
         Ok(_) => stream,
         Err(_) => {
             log(Info, "attempting connection failed, starting listener");
-            let listener = TcpListener::bind("127.0.0.1:34254")?;
-            listener.accept().map(|it| it.0)
+            wait_for_connection()
         }
     };
+}
+
+fn wait_for_connection() -> io::Result<TcpStream> {
+    let address = local_ip();
+    log(Info, "starting listening on");
+    log(Info, local_ip().unwrap().to_string().as_str());
+
+    let listener = TcpListener::bind(SocketAddr::new(address.unwrap(), PORT))?;
+    listener.accept().map(|it| it.0)
 }
