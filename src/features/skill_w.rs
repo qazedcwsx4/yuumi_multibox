@@ -1,3 +1,5 @@
+use std::thread::sleep;
+use std::time::Duration;
 use inputbot::{KeybdKey, MouseCursor};
 use inputbot::KeybdKey::{Numpad2Key, WKey};
 use serde::{Deserialize, Serialize};
@@ -30,6 +32,8 @@ impl Feature for SkillWFeature {
     fn enact(message: Self::ConcreteSkill) {
         MouseCursor::move_abs(message.x, message.y);
         WKey.press();
+        sleep(Duration::from_millis(10));
+        WKey.release();
     }
 
     fn key() -> KeybdKey {

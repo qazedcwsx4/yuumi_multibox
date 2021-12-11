@@ -1,3 +1,5 @@
+use std::thread::sleep;
+use std::time::Duration;
 use inputbot::KeybdKey;
 use inputbot::KeybdKey::{EKey, Numpad3Key};
 use serde::{Deserialize, Serialize};
@@ -25,6 +27,8 @@ impl Feature for SkillEFeature {
 
     fn enact(_: Self::ConcreteSkill) {
         EKey.press();
+        sleep(Duration::from_millis(10));
+        EKey.release();
     }
 
     fn key() -> KeybdKey {

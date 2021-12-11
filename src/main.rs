@@ -2,8 +2,7 @@
 extern crate enum_ordinalize;
 
 use std::borrow::BorrowMut;
-use std::env;
-use std::net::{AddrParseError, IpAddr, Ipv4Addr};
+use std::net::IpAddr;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 
@@ -50,7 +49,7 @@ fn main() {
             .validator(IP_VALIDATOR))
         .subcommand(SubCommand::with_name("adc")
             .about("Run as the ADC host"))
-            .display_order(0)
+        .display_order(0)
         .subcommand(SubCommand::with_name("yuumi")
             .about("Run as the yuumi client")
             .display_order(0))
@@ -86,6 +85,8 @@ fn adc_mode(destination: Option<IpAddr>, listen: Option<IpAddr>) {
     log(Info, "running in adc mode");
     let original_connection = Arc::new(Mutex::new(create_connection(destination, listen)));
 
+    SkillQFeature::register(&original_connection);
+    SkillWFeature::register(&original_connection);
     SkillEFeature::register(&original_connection);
 
     handle_input_events()
@@ -101,6 +102,8 @@ fn yuumi_mode(destination: Option<IpAddr>, listen: Option<IpAddr>) {
             Message::SkillQ(it) => SkillQFeature::enact(it),
             Message::SkillW(it) => SkillWFeature::enact(it),
             Message::SkillE(it) => SkillEFeature::enact(it),
+            Message::MouseMove(it) => it.enact(),
+            Message::ReleaseQ(it) => it.enact(),
         }
     }
 }
