@@ -27,8 +27,10 @@ pub fn create_connection(destination: Option<IpAddr>, listen: Option<IpAddr>) ->
 
 pub fn send_message(connection: &mut TcpStream, message: message::Message) {
     let encoded: Vec<u8> = bincode::serialize(&message).unwrap();
-    if connection.write(encoded.as_slice()).is_err() {
+    let result = connection.write(encoded.as_slice());
+    if result.is_err() {
         log(Panic, "unable to send data");
+        dbg!(result);
         panic!();
     }
 }
