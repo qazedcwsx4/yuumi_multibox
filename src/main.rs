@@ -14,6 +14,7 @@ use crate::features::feature::Feature;
 use crate::features::message::Message;
 use crate::features::skill_e::SkillEFeature;
 use crate::features::skill_q::SkillQFeature;
+use crate::features::skill_r::SkillRFeature;
 use crate::features::skill_w::SkillWFeature;
 use crate::log::Level::*;
 use crate::log::log;
@@ -88,6 +89,7 @@ fn adc_mode(destination: Option<IpAddr>, listen: Option<IpAddr>) {
     SkillQFeature::register(&original_connection);
     SkillWFeature::register(&original_connection);
     SkillEFeature::register(&original_connection);
+    SkillRFeature::register(&original_connection);
 
     handle_input_events()
 }
@@ -102,6 +104,7 @@ fn yuumi_mode(destination: Option<IpAddr>, listen: Option<IpAddr>) {
             Message::SkillQ(it) => SkillQFeature::enact(it),
             Message::SkillW(it) => SkillWFeature::enact(it),
             Message::SkillE(it) => SkillEFeature::enact(it),
+            Message::SkillR(it) => SkillRFeature::enact(it),
             Message::MouseMove(it) => it.enact(),
             Message::ReleaseQ(it) => it.enact(),
         }
